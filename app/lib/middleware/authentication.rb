@@ -1,5 +1,5 @@
 module Middleware
-  FILTER = ['/users']
+  FILTER = ['/users', '/users/sign_in']
   class Authentication
     def initialize(app)
       @app = app
@@ -12,9 +12,7 @@ module Middleware
       token = request.params['data']
       access_token = request.headers['HTTP_ACCESS_TOKEN']
       data = JsonWebToken.decode(token) if token
-      if authenticate(request, data, access_token)
-        @app.call(env)
-      end
+      @app.call(env) if authenticate(request, data, access_token)
     end
 
     private

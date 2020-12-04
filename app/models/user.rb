@@ -4,12 +4,19 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
 
-  attr_accessor :access_token
-  after_create :create_access_token
+  def as_json
+    { id: self.id, email: self.email }
+  end
 
   private
 
-  def create_access_token
-    self.access_token = JsonWebToken.encode(self.as_json)
+  Warden::Manager.after_set_user do |user, auth, opts|
+    user.access_token = JsonWebToken.encode(user.as_json)
+    user.save
+  end
+
+  Warden::Manager.before_logout do |user, auth, opts|
+    user.access_token = nil
+    user.save
   end
 end
